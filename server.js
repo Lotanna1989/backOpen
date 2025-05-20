@@ -7,19 +7,20 @@ dotenv.config();
 
 const app = express();
 
-// CORS config to allow localhost:3000 and Postman (no origin)
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow Postman or server requests
-    if (origin.includes('localhost:3000')) return callback(null, true);
-    callback(new Error('Not allowed by CORS'), false);
-  },
+  origin: ['http://localhost:3000', 'https://yourfrontend.onrender.com'],
+  methods: ['GET', 'POST'],
+  credentials: true,
 };
-
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Initialize OpenAI client
+// Root route for sanity check
+app.get('/', (req, res) => {
+  res.send('AI Triage Backend is live');
+});
+
+// Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -29,13 +30,11 @@ app.post('/api/chat', async (req, res) => {
     const { messages } = req.body;
     if (!messages) return res.status(400).json({ error: 'Messages are required' });
 
-    // Create chat completion
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // or 'gpt-3.5-turbo'
+      model: 'gpt-4o-mini',
       messages,
     });
 
-    // Send only assistant message back
     res.json({ message: completion.choices[0].message });
   } catch (error) {
     console.error(error.response?.data || error.message);
@@ -44,4 +43,4 @@ app.post('/api/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
