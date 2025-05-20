@@ -29,14 +29,14 @@ app.post('/api/chat', async (req, res) => {
     const { messages } = req.body;
     if (!messages) return res.status(400).json({ error: 'Messages are required' });
 
-    // Use OpenAI client to create chat completion
+    // Create chat completion
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',  // or 'gpt-3.5-turbo' as you want
+      model: 'gpt-4o-mini', // or 'gpt-3.5-turbo'
       messages,
-      store: true,
     });
 
-    res.json(completion);
+    // Send only assistant message back
+    res.json({ message: completion.choices[0].message });
   } catch (error) {
     console.error(error.response?.data || error.message);
     res.status(500).json({ error: 'Something went wrong' });
